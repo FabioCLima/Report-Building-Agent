@@ -51,9 +51,43 @@ O diagrama de referencia do starter foi preservado em [docs/assets/langgraph_age
 
 ## Proximo passo
 
-Depois que o ambiente for criado, o fluxo natural e:
+### Passo a passo (pip)
 
-1. instalar dependencias;
-2. implementar os TODOs do workflow e das tools;
-3. adicionar testes unitarios e de integracao;
-4. validar o fluxo interativo com `.env`.
+1. Criar e ativar venv:
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+2. Instalar dependencias:
+```bash
+pip install -r requirements.txt
+pip install -e ".[dev]"
+```
+3. Configurar variaveis:
+```bash
+cp .env.example .env
+```
+Edite `.env` e preencha `OPENAI_API_KEY` (e opcionalmente `OPENAI_BASE_URL`, `MODEL_NAME`, `TEMPERATURE`).
+
+4. Executar:
+```bash
+python main.py
+```
+Opcional (se instalou com `-e .`): `python -m report_building_agent`
+
+### Passo a passo (uv)
+
+1. Sincronizar ambiente (usa `pyproject.toml` + `uv.lock`):
+```bash
+uv sync --dev
+```
+2. Executar:
+```bash
+uv run python main.py
+```
+
+### Como testar
+
+```bash
+python -m pytest -q
+```
