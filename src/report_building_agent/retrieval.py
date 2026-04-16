@@ -146,7 +146,8 @@ Payment Terms: Net 60 days
         query_terms = query.lower().split()
         matches: List[DocumentChunk] = []
         for doc in self.documents.values():
-            haystack = f"{doc.title} {doc.content} {doc.metadata}".lower()
+            # Include doc_id so users/agent can search by identifiers like "INV-002".
+            haystack = f"{doc.doc_id} {doc.title} {doc.content} {doc.metadata}".lower()
             score = sum(haystack.count(term) for term in query_terms)
             if score > 0:
                 matches.append(self._to_chunk(doc, float(score)))

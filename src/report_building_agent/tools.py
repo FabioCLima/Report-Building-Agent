@@ -93,6 +93,9 @@ def create_document_search_tool(retriever, logger: ToolLogger):
         """Search documents using keyword/type/amount criteria."""
 
         try:
+            query_upper = query.upper()
+            direct_ids = [doc_id for doc_id in getattr(retriever, "documents", {}).keys() if doc_id in query_upper]
+
             if search_type == "all":
                 results = retriever.retrieve_all()
             elif search_type == "type" and doc_type:
@@ -100,7 +103,12 @@ def create_document_search_tool(retriever, logger: ToolLogger):
             elif search_type in {"amount", "amount_range"}:
                 results = retriever.retrieve_by_amount_range(min_amount=min_amount, max_amount=max_amount)
             elif search_type == "keyword":
-                results = retriever.retrieve_by_keyword(query)
+                # Prefer direct doc_id hits if present in the query.
+                if direct_ids:
+                    results = [retriever.get_document_by_id(doc_id) for doc_id in direct_ids]
+                    results = [r for r in results if r is not None]
+                else:
+                    results = retriever.retrieve_by_keyword(query)
             else:
                 # Best-effort fallback: detect amount patterns, otherwise keyword.
                 if any(token in query.lower() for token in ["$", "over", "under", "between", "around", "exact"]):

@@ -12,6 +12,11 @@ def test_retrieve_by_keyword():
     chunks = retriever.retrieve_by_keyword("Acme")
     assert any(c.doc_id == "INV-001" for c in chunks)
 
+def test_retrieve_by_keyword_doc_id():
+    retriever = SimulatedRetriever()
+    chunks = retriever.retrieve_by_keyword("INV-002")
+    assert any(c.doc_id == "INV-002" for c in chunks)
+
 
 def test_retrieve_by_amount_range_over_50k():
     retriever = SimulatedRetriever()
