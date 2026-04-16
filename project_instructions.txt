@@ -1,0 +1,20 @@
+## Report Building Agent - Instrucoes do Projeto
+
+Este repositorio foi estruturado para implementar um assistente de documentos com LangChain + LangGraph.
+
+Referencias:
+- Arquitetura: `docs/architecture.md`
+- Diagrama do workflow: `docs/assets/langgraph_agent_architecture.png`
+
+Objetivo funcional:
+- Classificar intencao do usuario (`qa`, `summarization`, `calculation`, `unknown`)
+- Executar o node adequado no grafo
+- Usar tools para buscar/ler documentos e calcular expressoes
+- Persistir estado por sessao (`thread_id`) e salvar metadados em `sessions/`
+
+Como rodar (apos criar o ambiente):
+- `python main.py`
+- ou `python -m report_building_agent`
+
+Observacao:
+- O arquivo `.env` deve conter `OPENAI_API_KEY` (e opcionalmente `OPENAI_BASE_URL`).
