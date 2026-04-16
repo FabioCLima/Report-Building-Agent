@@ -159,9 +159,19 @@ def run_cli() -> None:
         user_input = input("\nEnter Message: ").strip()
         if not user_input:
             continue
-        if user_input.lower() == "/quit":
+        command = user_input.lower()
+        if command == "/quit":
             print("Goodbye!", color="blue")
             break
+        if command == "/help":
+            print("Commands: /help, /docs, /quit", color="blue")
+            print("Examples: 'Summarize all contracts', 'Invoices over $50,000', 'Calculate 2 + 2'")
+            continue
+        if command == "/docs":
+            print("\nAVAILABLE DOCUMENTS:", color="blue")
+            for doc_id, doc in assistant.retriever.documents.items():
+                print(f"- {doc_id} | {doc.doc_type} | {doc.title}")
+            continue
 
         result = assistant.process_message(user_input)
         if result["success"]:
