@@ -43,6 +43,7 @@ class DocumentAssistant:
         else:
             session_id = session_id or str(uuid.uuid4())
             self.current_session = SessionState(session_id=session_id, user_id=user_id)
+        self.tool_logger.set_session_id(self.current_session.session_id)
         return self.current_session.session_id
 
     def process_message(self, user_input: str) -> GraphResult:

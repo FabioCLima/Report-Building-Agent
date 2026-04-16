@@ -18,9 +18,17 @@ class ToolLogger:
         self.logs_dir = logs_dir
         self.session_id = session_id
         os.makedirs(logs_dir, exist_ok=True)
+        self.log_file = self._resolve_log_file()
+
+    def set_session_id(self, session_id: str) -> None:
+        """Switch logging to a session-specific file."""
+        self.session_id = session_id
+        self.log_file = self._resolve_log_file()
+
+    def _resolve_log_file(self) -> str:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"session_{session_id}.json" if session_id else f"tool_usage_{timestamp}.json"
-        self.log_file = os.path.join(logs_dir, filename)
+        filename = f"session_{self.session_id}.json" if self.session_id else f"tool_usage_{timestamp}.json"
+        return os.path.join(self.logs_dir, filename)
 
     def log_tool_use(self, tool_name: str, input_data: Dict[str, Any], output: Any) -> None:
         self.logs.append(
