@@ -35,38 +35,41 @@ class ToolLogger:
             json.dump(self.logs, file, indent=2, ensure_ascii=True)
 
 
+def _safe_eval_arithmetic(expression: str) -> float:
+    """
+    Safely evaluate an arithmetic expression.
+
+    Allowed:
+    - digits, decimal dot, whitespace
+    - + - * / % and parentheses
+    """
+    if not re.fullmatch(r"[0-9\.\+\-\*\/\%\(\)\s]+", expression):
+        raise ValueError("Invalid expression. Only basic arithmetic is allowed.")
+
+    allowed_operators = (ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Mod)
+    parsed = ast.parse(expression, mode="eval")
+
+    for node in ast.walk(parsed):
+        if isinstance(node, (ast.Call, ast.Attribute, ast.Name)):
+            raise ValueError("Invalid expression.")
+        if isinstance(node, ast.BinOp) and not isinstance(node.op, allowed_operators):
+            raise ValueError("Invalid operator.")
+        if isinstance(node, ast.Constant) and not isinstance(node.value, (int, float)):
+            raise ValueError("Invalid constant.")
+
+    result = eval(compile(parsed, "<calculator>", "eval"), {"__builtins__": {}}, {})
+    return float(result)
+
+
 def create_calculator_tool(logger: ToolLogger):
     """Create a safe calculator tool for arithmetic expressions."""
-
-    allowed_operators = (
-        ast.Add,
-        ast.Sub,
-        ast.Mult,
-        ast.Div,
-        ast.Mod,
-    )
 
     @tool
     def calculator(expression: str) -> str:
         """Evaluate a basic arithmetic expression using digits, spaces, and math operators."""
 
-        if not re.fullmatch(r"[0-9\.\+\-\*\/\%\(\)\s]+", expression):
-            error = "Invalid expression. Only basic arithmetic is allowed."
-            logger.log_tool_use("calculator", {"expression": expression}, {"error": error})
-            return error
-
         try:
-            parsed = ast.parse(expression, mode="eval")
-
-            for node in ast.walk(parsed):
-                if isinstance(node, ast.Call) or isinstance(node, ast.Attribute) or isinstance(node, ast.Name):
-                    raise ValueError("Invalid expression.")
-                if isinstance(node, ast.BinOp) and not isinstance(node.op, allowed_operators):
-                    raise ValueError("Invalid operator.")
-                if isinstance(node, ast.Constant) and not isinstance(node.value, (int, float)):
-                    raise ValueError("Invalid constant.")
-
-            result = eval(compile(parsed, "<calculator>", "eval"), {"__builtins__": {}}, {})
+            result = _safe_eval_arithmetic(expression)
             response = f"Result: {result}"
             logger.log_tool_use("calculator", {"expression": expression}, {"result": result})
             return response
