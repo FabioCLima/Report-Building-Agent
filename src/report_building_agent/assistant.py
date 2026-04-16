@@ -32,7 +32,7 @@ class DocumentAssistant:
         self.retriever = SimulatedRetriever()
         self.tool_logger = ToolLogger(logs_dir=settings.logs_dir)
         self.tools = get_all_tools(self.retriever, self.tool_logger)
-        self.workflow = create_workflow(self.llm, self.tools)
+        self.workflow = create_workflow()
         self.session_storage_path = settings.session_storage_path
         os.makedirs(self.session_storage_path, exist_ok=True)
         self.current_session: Optional[SessionState] = None

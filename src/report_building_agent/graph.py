@@ -4,6 +4,7 @@ import operator
 from typing import Annotated, Any, Dict, List, Optional, TypedDict
 
 from langchain_core.messages import BaseMessage, ToolMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, SystemMessagePromptTemplate
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, StateGraph
@@ -40,6 +41,9 @@ class AgentState(TypedDict):
 
 
 def _format_history(messages: List[BaseMessage]) -> str:
+    # Keep prompts bounded as sessions grow.
+    if len(messages) > 20:
+        messages = messages[-20:]
     lines: List[str] = []
     for message in messages:
         # BaseMessage usually exposes `.type` and `.content`
@@ -126,9 +130,14 @@ def calculation_agent(state: AgentState, config: RunnableConfig) -> AgentState:
 
 def update_memory(state: AgentState, config: RunnableConfig) -> AgentState:
     llm = config["configurable"]["llm"]
-    prompt = MEMORY_SUMMARY_PROMPT + "\n\n" + _format_history(state.get("messages", []))
+    prompt_with_history = ChatPromptTemplate.from_messages(
+        [
+            SystemMessagePromptTemplate.from_template(MEMORY_SUMMARY_PROMPT),
+            MessagesPlaceholder("chat_history"),
+        ]
+    ).invoke({"chat_history": state.get("messages", [])})
     structured_llm = llm.with_structured_output(UpdateMemoryResponse)
-    response = structured_llm.invoke(prompt)
+    response = structured_llm.invoke(prompt_with_history)
     return {
         "conversation_summary": response.summary,
         "active_documents": response.document_ids,
@@ -141,9 +150,7 @@ def should_continue(state: AgentState) -> str:
     return state.get("next_step", "end")
 
 
-def create_workflow(llm: Any, tools: List[Any]):
-    # `llm` and `tools` are provided via `configurable` at runtime.
-    del llm, tools
+def create_workflow():
     workflow = StateGraph(AgentState)
     workflow.add_node("classify_intent", classify_intent)
     workflow.add_node("qa_agent", qa_agent)
