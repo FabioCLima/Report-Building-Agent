@@ -175,6 +175,27 @@ def run_cli() -> None:
 
         result = assistant.process_message(user_input)
         if result["success"]:
+            print("\nAssistant:", color="green")
             print(result["response"] or "No response generated.")
+
+            if result.get("intent"):
+                intent = result["intent"]
+                print(f"\nINTENT: {intent.get('intent_type')} (conf={intent.get('confidence')})", color="blue")
+            if result.get("sources"):
+                sources = result["sources"]
+                if sources:
+                    print(f"SOURCES: {', '.join(sources)}", color="magenta")
+            if result.get("tools_used"):
+                tools_used = result["tools_used"]
+                if tools_used:
+                    print(f"TOOLS USED: {', '.join(tools_used)}", color="yellow")
+            if result.get("actions_taken"):
+                actions = result["actions_taken"]
+                if actions:
+                    print(f"ACTIONS: {', '.join(actions)}", color="cyan")
+            if result.get("summary"):
+                summary = result["summary"]
+                if summary:
+                    print(f"SUMMARY: {summary}", color="white")
         else:
             print(f"Error: {result['error']}", color="red")
