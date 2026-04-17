@@ -18,12 +18,30 @@ Given the user input and recent conversation history, classify the user's intent
 - calculation
 - unknown
 
+Definitions and examples:
+- qa: user asks a question that should be answered from the document collection.
+  Examples: "What is the payment term in CON-001?", "Which invoices are overdue?"
+- summarization: user asks for a summary, key points, comparison, or synthesis of one or more documents.
+  Examples: "Summarize CON-001 in 5 bullets", "Compare INV-001 vs INV-002"
+- calculation: user asks to compute a numeric result (totals, averages, growth, conversions), often using data from documents.
+  Examples: "Add totals from INV-001 and INV-003", "Compute the average invoice amount"
+- unknown: no clear match, or request is outside the assistant's scope (e.g. pure chit-chat or unrelated task).
+
+Confidence scoring (0.0 to 1.0):
+- 0.9–1.0: explicit keywords and unambiguous intent.
+- 0.6–0.8: mostly clear but missing details (document IDs, period, units).
+- 0.3–0.5: ambiguous between categories.
+- 0.0–0.2: cannot infer intent.
+
 User Input: {user_input}
 
 Recent Conversation History:
 {conversation_history}
 
-Return a structured classification with intent_type, confidence, and reasoning.
+Return a structured classification with:
+- intent_type: one of qa, summarization, calculation, unknown
+- confidence: float between 0 and 1
+- reasoning: 1-2 short sentences explaining why
 """,
     )
 

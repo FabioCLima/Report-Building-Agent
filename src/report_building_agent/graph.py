@@ -60,7 +60,13 @@ def invoke_react_agent(
     messages: List[BaseMessage],
     llm: Any,
     tools: List[Any],
+    agent_invoke: Any | None = None,
 ) -> tuple[Dict[str, Any], List[str]]:
+    if agent_invoke is not None:
+        result = agent_invoke(response_schema=response_schema, messages=messages, tools=tools, llm=llm)
+        tools_used = [message.name for message in result.get("messages", []) if isinstance(message, ToolMessage)]
+        return result, tools_used
+
     llm_with_tools = llm.bind_tools(tools)
     agent = create_react_agent(model=llm_with_tools, tools=tools, response_format=response_schema)
     result = agent.invoke({"messages": messages})
@@ -98,11 +104,14 @@ def _run_specialist_node(
 ) -> AgentState:
     llm = config["configurable"]["llm"]
     tools = config["configurable"]["tools"]
+    agent_invoke = config["configurable"].get("agent_invoke")
     prompt_template = get_chat_prompt_template(intent_type)
     messages = prompt_template.invoke(
         {"input": state["user_input"], "chat_history": state.get("messages", [])}
     ).to_messages()
-    result, tools_used = invoke_react_agent(response_schema, messages, llm, tools)
+    result, tools_used = invoke_react_agent(
+        response_schema, messages, llm, tools, agent_invoke=agent_invoke
+    )
     return {
         "messages": result.get("messages", []),
         "actions_taken": [action_name],

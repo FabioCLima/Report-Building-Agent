@@ -43,6 +43,13 @@ class ToolLogger:
             json.dump(self.logs, file, indent=2, ensure_ascii=True)
 
 
+def _format_number_string(value: float) -> str:
+    if float(value).is_integer():
+        return str(int(value))
+    # Use a compact representation without forcing trailing zeros.
+    return format(float(value), ".15g")
+
+
 def _safe_eval_arithmetic(expression: str) -> float:
     """
     Safely evaluate an arithmetic expression.
@@ -78,7 +85,7 @@ def create_calculator_tool(logger: ToolLogger):
 
         try:
             result = _safe_eval_arithmetic(expression)
-            response = f"Result: {result}"
+            response = _format_number_string(result)
             logger.log_tool_use("calculator", {"expression": expression}, {"result": result})
             return response
         except Exception as exc:
